@@ -1,5 +1,5 @@
-import React from "react";
-import './button.css'
+import React from 'react';
+import './button.css';
 
 const Button: React.FC<{
   onClick: () => void;
@@ -7,7 +7,7 @@ const Button: React.FC<{
 }> = ({ onClick, children }) => {
   return (
     <button
-        className={`Button`}
+        className={'Button'}
         onClick={onClick}>
       {children}
     </button>

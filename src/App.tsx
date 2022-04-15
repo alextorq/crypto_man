@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import List from "./view/list";
+import List from './view/list';
 
 function App() {
   return (

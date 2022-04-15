@@ -1,11 +1,11 @@
-import React from "react";
-import './price-graf.css'
-import {takeLimit} from "../../utils/takeLimit";
+import React from 'react';
+import './price-graf.css';
+import {takeRight} from '../../utils/collections';
 
 
 interface Props {
 	prices: Array<number>
-  currency: string;
+	currency: string;
 }
 
 const MAX_ITEM = 100;
@@ -16,14 +16,14 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 	const maxPriceDiff = maxPrice - minPrice;
 
 	function getSize(x: number) {
-		return ((x - minPrice) * 100 / maxPriceDiff).toFixed(2)
+		return ((x - minPrice) * 100 / maxPriceDiff).toFixed(2);
 	}
-	const pricesSizes = takeLimit(prices, MAX_ITEM).map(getSize);
+	const pricesSizes = takeRight(prices, MAX_ITEM).map(getSize);
 
   return (
 	<div className="price-grafic">
 		<div className="price-grafic__max">
-			{maxPrice}
+			{isFinite(maxPrice) ? maxPrice.toFixed(2) : ''}
 		</div>
 		<div className="price-grafic__line">
 		</div>

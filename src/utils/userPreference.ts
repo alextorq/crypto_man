@@ -5,19 +5,17 @@ interface Data {
       createdAt: number,
       updatedAt: number,
   };
-  value: any;
+  value: unknown;
 }
 
 
 export default class UserPreference {
-    private constructor() {
-    }
 
     private static getAll(): Record<string, Data> {
         return JSON.parse(localStorage.getItem(KEY) || '{}');
     }
 
-    private static createData(value: any) {
+    private static createData(value: unknown) {
         return {
             meta: {
                 createdAt: new Date().getTime(),
@@ -25,21 +23,21 @@ export default class UserPreference {
             },
             value,
         };
-    };
+    }
 
     //TODO updatedAt
-    public static save(key: string, value: any) {
+    public static save(key: string, value: unknown) {
         const all = UserPreference.getAll();
         all[key] = UserPreference.createData(value);
         localStorage.setItem(KEY, JSON.stringify(all));
     }
 
-    public static get<T>(key: string, defaultValue: T): T {
+    public static get<T = unknown>(key: string, defaultValue: T): T {
         const value = UserPreference.getAll()[key];
         if (value) {
-            return value.value;
+            return value.value as T;
         }
-        return defaultValue
+        return defaultValue;
     }
 
 }

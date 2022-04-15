@@ -1,6 +1,5 @@
-import React, {useEffect} from "react";
-
-const noop = () => {};
+import React, {useEffect} from 'react';
+import noop from '../../utils/noop';
 
 const Currency: React.FC<{
   currency: string;
@@ -23,12 +22,12 @@ const Currency: React.FC<{
   const handleClose = (event:  React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
     event.stopPropagation();
     onClose(currency);
-  }
+  };
 
   const handleClick = (event:  React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     event.stopPropagation();
     onClick(currency);
-  }
+  };
 
   return (
     <div onClick={handleClick} className={classNames + ' relative transition-all p-6 bg-white rounded-xl shadow-lg flex items-center space-x-4'}>

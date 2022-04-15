@@ -1,14 +1,15 @@
-import React, {useCallback, useEffect, useState} from "react";
-import Input from "../components/input/input";
-import Button from "../components/button/button";
-import Loader from "../components/loader/loader";
-import './list.css'
-import Api from "../api/api";
-import Currency from "../components/currency/currency";
-import UserPreference from "../utils/userPreference";
-import PriceGraf from "../components/price-graf/price-graf";
-import currency from "../components/currency/currency";
-import {takeLimit} from "../utils/takeLimit";
+import React, {FormEvent, useCallback, useEffect, useState} from 'react';
+import Input from '../components/input/input';
+import Button from '../components/button/button';
+import Loader from '../components/loader/loader';
+import './list.css';
+import Api from '../api/api';
+import Currency from '../components/currency/currency';
+import UserPreference from '../utils/userPreference';
+import PriceGraf from '../components/price-graf/price-graf';
+import currency from '../components/currency/currency';
+import {takeRight} from '../utils/collections';
+import noop from '../utils/noop';
 
 const api = Api.getInstance();
 
@@ -19,7 +20,7 @@ function getSavedCurrency() {
 	return UserPreference.get<Array<string>>(SAVE_KEY, []);
 }
 
-export function last(array: Array<any>) {
+export function last<T = unknown>(array: Array<T>) {
 	return array[array.length - 1];
 }
 
@@ -28,17 +29,18 @@ const List: React.FC = () => {
 	const [list, setList] = useState<Array<string>>(getSavedCurrency);
 	const [currency, setCurrency] = useState<Record<string, Array<number>>>({});
 	const [isConnecting, setConnectStatus] = useState<boolean>(false);
-	const [selectedCurrency, setSelected] = useState(DEFAULT_CURRENCY);
+	const [selectedCurrency, setSelected] = useState('');
 	const [prices, setPrices] = useState<Array<number>>([]);
 
 
-	const updateCurrency = useCallback((data: any) => {
+	const updateCurrency = useCallback((data: Record<string, unknown>) => {
 		setCurrency((prev) => {
-			const newCurrency = prev[data.currency] || [];
+			const key = data.currency as string;
+			const newCurrency = prev[key] || [];
 			return {
 				...prev,
-				[data.currency]: takeLimit([...newCurrency, data.newPrice],100)
-			}
+				[key]: takeRight([...newCurrency, data.newPrice as number],100)
+			};
 		});
 	}, []);
 
@@ -59,40 +61,46 @@ const List: React.FC = () => {
 	}, [list]);
 
 	useEffect(() => {
-		if (!isConnecting) return () => {}
+		if (!isConnecting) return noop;
 		function subscribe() {
 			list.forEach(key => {
-				api.subscribeToTickerOnWs(key, updateCurrency);
+				api.subscribeToTickerOnWs(key, updateCurrency as any);
 			});
 		}
 
 		function unsubscribe() {
 			list.forEach(key => {
-				api.unsubscribeFromTickerOnWs(key, updateCurrency);
+				api.unsubscribeFromTickerOnWs(key, updateCurrency as any);
 			});
 		}
 
-		subscribe()
+		subscribe();
 
-		return unsubscribe
+		return unsubscribe;
 	}, [isConnecting, list]);
 
 
-	const addItem = () => {
+	const addItem = async (e?: FormEvent<HTMLFormElement>) => {
+		e && e.preventDefault();
 		const validateCurrency = (currency: string, list: Array<string>) => {
 			const isDuplicate = list.includes(currency);
 			const isEmpty = currency.length === 0;
 			return [isDuplicate, isEmpty].some(_ => _);
 		};
 		if (validateCurrency(search, list)) return;
-
-		setList( (prev) => ([...prev, search]))
-		setSearch('');
+		api.checkExist(search).then((exist) => {
+			if (exist) {
+				setList( (prev) => ([...prev, search]));
+				setSearch('');
+			}else{
+				alert('Currency not found');
+			}
+		});
 	};
 
 	const selectCurrency = (currency: string) => {
 		setSelected(currency);
-	}
+	};
 
 	const removeItem = (currency: string) => {
 		setList((list) => list.filter((key) => key !== currency));
@@ -106,13 +114,13 @@ const List: React.FC = () => {
 	return (
 		<div className="list">
 			<Loader isLoading={!isConnecting}/>
-			<div className={'Search'}>
+			<form onSubmit={addItem} className={'Search'}>
 				<Input className={'ListInput'} value={search} onChange={setSearch}/>
 				<Button onClick={addItem}>+</Button>
-			</div>
+			</form>
 			<div className="list-wrapper grid gap-4 grid-cols-3">
-				{Object.entries(currency).map((value, index, array) => {
-					return <Currency onClose={removeItem} onClick={selectCurrency} key={value[0]} currency={value[0]} amount={last(value[1])}/>
+				{Object.entries(currency).map((value) => {
+					return <Currency onClose={removeItem} onClick={selectCurrency} key={value[0]} currency={value[0]} amount={last(value[1])}/>;
 				})}
 			</div>
 
@@ -123,6 +131,5 @@ const List: React.FC = () => {
 		</div>
 	);
 };
-
 
 export default List;

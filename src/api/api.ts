@@ -1,11 +1,11 @@
 // const API_KEY = 'AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY';
-import eventEmitter from "../utils/eventEmitter";
+import eventEmitter from '../utils/eventEmitter';
 
 const API_KEY = '380ec498044c900f249ad39326e8320a2cb4ee09b94afe4dff6911e37ef56bfc';
 
 const URL = `wss://streamer.cryptocompare.com/v2?api_key=${API_KEY}`;
-const AGGREGATE_INDEX = "5"
-
+const AGGREGATE_INDEX = '5';
+import {cb} from '../utils/eventEmitter';
 
 
 //TODO reconnect event
@@ -39,31 +39,33 @@ class Api {
     }
 
     onOpen() {
+        console.log('connected');
     }
 
     onClose() {
+        console.log('closed');
     }
 
-    onError(error: any) {
+    onError(error: unknown) {
         console.log(error);
     }
 
-    send(message: any) {
+    send(message: unknown) {
         this.socket.send(JSON.stringify(message));
     }
 
-    subscribeToTickerOnWs(ticker: string, cb: Function) {
+    subscribeToTickerOnWs(ticker: string, cb: cb) {
         this.send({
-            action: "SubAdd",
+            action: 'SubAdd',
             subs: [`5~CCCAGG~${ticker}~USD`]
         });
 
         eventEmitter.on(ticker, cb);
     }
 
-    unsubscribeFromTickerOnWs(ticker: string, cb: Function) {
+    unsubscribeFromTickerOnWs(ticker: string, cb: cb) {
         this.send({
-            action: "SubRemove",
+            action: 'SubRemove',
             subs: [`5~CCCAGG~${ticker}~USD`]
         });
         eventEmitter.off(ticker, cb);
@@ -82,6 +84,12 @@ class Api {
         });
     }
 
+    async checkExist(ticker: string) {
+        return await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=USD`)
+            .then(res => res.json())
+            .then(res => res.Response !== 'Error');
+    }
+
     static getInstance() {
         if (!Api.instance) {
             Api.instance = new Api();
@@ -90,6 +98,4 @@ class Api {
     }
 }
 
-
-
-export default Api
+export default Api;

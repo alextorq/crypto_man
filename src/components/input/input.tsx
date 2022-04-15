@@ -1,5 +1,5 @@
-import React from "react";
-import './input.css'
+import React from 'react';
+import './input.css';
 
 interface Props {
     value: string;
@@ -19,4 +19,4 @@ export const Input: React.FC<Props> = ({ value, onChange, className }) => {
     );
 };
 
-export default Input
+export default Input;
