@@ -1,7 +1,6 @@
 import React from 'react';
 import './loader.css';
 
-
 interface ILoaderProps {
 	isLoading: boolean
 }

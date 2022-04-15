@@ -2,7 +2,6 @@ import React from 'react';
 import './price-graf.css';
 import {takeRight} from '../../utils/collections';
 
-
 interface Props {
 	prices: Array<number>
 	currency: string;
@@ -18,15 +17,20 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 	function getSize(x: number) {
 		return ((x - minPrice) * 100 / maxPriceDiff).toFixed(2);
 	}
-	const pricesSizes = takeRight(prices, MAX_ITEM).map(getSize);
+
+	const limitedPrice = takeRight(prices, MAX_ITEM);
+	const pricesSizes =	limitedPrice.map(getSize);
 
   return (
 	<div className="price-grafic">
-		<div className="price-grafic__max">
-			{isFinite(maxPrice) ? maxPrice.toFixed(2) : ''}
-		</div>
-		<div className="price-grafic__line">
-		</div>
+		{isFinite(maxPrice) && (
+			<div>
+				<div className="price-grafic__max">
+					{ maxPrice.toFixed(4)}
+				</div>
+				<div className="price-grafic__line"></div>
+			</div>
+		)}
 
 		<ul>
 			{pricesSizes.map((item, index) => (
@@ -34,7 +38,7 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 					height: `${item}%`,
 				}}>
 					<span className="hover-tooltip bg-white opacity-0 z-10 absolute top-0 left-1/2 transition-all">
-						{prices[index]}
+						{limitedPrice[index]}
 					</span>
 				</li>
 			))}

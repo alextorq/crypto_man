@@ -8,7 +8,6 @@ interface Data {
   value: unknown;
 }
 
-
 export default class UserPreference {
 
     private static getAll(): Record<string, Data> {

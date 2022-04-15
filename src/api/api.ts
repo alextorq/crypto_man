@@ -33,7 +33,6 @@ class Api {
         });
     }
 
-
     getPromise() {
         return this.connecting;
     }
