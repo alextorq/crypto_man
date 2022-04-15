@@ -2,7 +2,7 @@
 
 Learn react
 
-![preview](https://github.com/alextorq/input/blob/master/view.png?raw=true)
+![preview](https://github.com/alextorq/crypto_man/blob/master/public/preview/img.png?raw=true)
 
 ## Available Scripts
 ### `npm start`
