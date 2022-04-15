@@ -1,0 +1,16 @@
+.ListInput {
+    margin-right: 20px;
+}
+
+
+.Search {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+
+.list-wrapper > div {
+
+}
