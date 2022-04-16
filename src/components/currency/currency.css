@@ -1,0 +1,48 @@
+.selected {
+  /*box-shadow: 10px 10px 5px grey;*/
+}
+
+.item {
+  background-color: #dcdcdc;
+}
+
+.selected:after {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  content: '';
+  background: green;
+  border-radius: 50%;
+  top: 5px;
+  left: 5px;
+  animation: blink-animation 2s steps(5, start) infinite;
+}
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
+@-webkit-keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}

@@ -43,7 +43,7 @@
 .price-grafic__max {
     position: absolute;
     top: 20px;
-    left: 0;
-    transform: translateX(-120%);
+    right: 0;
+    transform: translateX(120%);
     color: white;
 }

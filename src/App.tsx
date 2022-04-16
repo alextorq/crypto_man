@@ -11,7 +11,7 @@ function App() {
           </div>
       </header>
       <main>
-          <div className="container">
+          <div className="md:container md:mx-auto">
               <List/>
           </div>
       </main>

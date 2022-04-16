@@ -21,30 +21,28 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 	const limitedPrice = takeRight(prices, MAX_ITEM);
 	const pricesSizes =	limitedPrice.map(getSize);
 
-  return (
-	<div className="price-grafic">
-		{isFinite(maxPrice) && (
-			<div>
-				<div className="price-grafic__max">
-					{ maxPrice.toFixed(4)}
+	return (
+		<div className="price-grafic">
+			{isFinite(maxPrice) && (
+				<div>
+					<div className="price-grafic__max">
+						{ maxPrice.toFixed(4)}
+					</div>
+					<div className="price-grafic__line"></div>
 				</div>
-				<div className="price-grafic__line"></div>
-			</div>
-		)}
+			)}
 
-		<ul>
-			{pricesSizes.map((item, index) => (
-				<li className="relative" key={item + index} style={{
-					height: `${item}%`,
-				}}>
-					<span className="hover-tooltip bg-white opacity-0 z-10 absolute top-0 left-1/2 transition-all">
-						{limitedPrice[index]}
-					</span>
-				</li>
-			))}
-		</ul>
-	</div>
-  );
+			<ul>
+				{pricesSizes.map((item, index) => (
+					<li className="relative" key={item + index} style={{height: `${item}%`}}>
+						<span className="hover-tooltip bg-white opacity-0 z-10 absolute top-0 left-1/2 transition-all">
+							{limitedPrice[index]}
+						</span>
+					</li>
+				))}
+			</ul>
+		</div>
+	);
 };
 
 export default PriceGraf;

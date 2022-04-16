@@ -8,7 +8,7 @@ import Currency from '../components/currency/currency';
 import UserPreference from '../utils/userPreference';
 import PriceGraf from '../components/price-graf/price-graf';
 import currency from '../components/currency/currency';
-import {takeRight} from '../utils/collections';
+import {takeRight, last} from '../utils/collections';
 import noop from '../utils/noop';
 
 const api = Api.getInstance();
@@ -20,9 +20,6 @@ function getSavedCurrency() {
 	return UserPreference.get<Array<string>>(SAVE_KEY, []);
 }
 
-export function last<T = unknown>(array: Array<T>) {
-	return array[array.length - 1];
-}
 
 const List: React.FC = () => {
 	const [search, setSearch] = useState<string>(() => Object.keys(getSavedCurrency()).length ? '' : DEFAULT_CURRENCY);
@@ -31,7 +28,6 @@ const List: React.FC = () => {
 	const [isConnecting, setConnectStatus] = useState<boolean>(false);
 	const [selectedCurrency, setSelected] = useState('');
 	const [prices, setPrices] = useState<Array<number>>([]);
-
 
 	const updateCurrency = useCallback((data: Record<string, unknown>) => {
 		setCurrency((prev) => {
@@ -61,6 +57,14 @@ const List: React.FC = () => {
 	}, [list]);
 
 	useEffect(() => {
+		list.forEach((currency) => {
+			api.getPrice(currency).then((data) => {
+				updateCurrency({currency, newPrice: data});
+			});
+		});
+	}, []);
+
+	useEffect(() => {
 		if (!isConnecting) return noop;
 		function subscribe() {
 			list.forEach(key => {
@@ -82,20 +86,29 @@ const List: React.FC = () => {
 
 	const addItem = async (e?: FormEvent<HTMLFormElement>) => {
 		e && e.preventDefault();
-		const validateCurrency = (currency: string, list: Array<string>) => {
+		const validateCurrency = async (currency: string, list: Array<string>) => {
 			const isDuplicate = list.includes(currency);
 			const isEmpty = currency.length === 0;
-			return [isDuplicate, isEmpty].some(_ => _);
-		};
-		if (validateCurrency(search, list)) return;
-		api.checkExist(search).then((exist) => {
-			if (exist) {
-				setList( (prev) => ([...prev, search]));
-				setSearch('');
-			}else{
-				alert('Currency not found');
+			let isNotExist = false;
+			await api.checkExist(currency).then((exist) => {
+				isNotExist = !exist;
+			});
+			if (isDuplicate) {
+				alert('This currency already exist');
 			}
-		});
+			if (isEmpty) {
+				alert('Please enter currency');
+			}
+			if (isNotExist) {
+				alert('This currency does not exist');
+			}
+			return [isDuplicate, isEmpty, isNotExist].some(_ => _);
+		};
+		if (await validateCurrency(search, list)) return;
+		setList( (prev) => ([...prev, search]));
+		const USD = await api.getPrice(search);
+		updateCurrency({currency: search, newPrice: USD});
+		setSearch('');
 	};
 
 	const selectCurrency = (currency: string) => {
@@ -112,18 +125,25 @@ const List: React.FC = () => {
 	};
 
 	return (
-		<div className="list">
+		<div className="list main">
 			<Loader isLoading={!isConnecting}/>
-			<form onSubmit={addItem} className={'Search'}>
-				<Input className={'ListInput'} value={search} onChange={setSearch}/>
-				<Button onClick={addItem}>+</Button>
-			</form>
-			<div className="list-wrapper grid gap-4 grid-cols-3">
-				{Object.entries(currency).map((value) => {
-					return <Currency onClose={removeItem} onClick={selectCurrency} key={value[0]} currency={value[0]} amount={last(value[1])}/>;
-				})}
-			</div>
+			<div>
+				<form onSubmit={addItem} className={'Search'}>
+					<Input className={'ListInput'} value={search} onChange={setSearch}/>
+					<Button onClick={addItem}>+</Button>
+				</form>
+				<div className="list-wrapper">
+					{Object.entries(currency).map((value) => {
+						return <Currency onClose={removeItem}
+											isSelected={selectedCurrency === value[0]}
+											onClick={selectCurrency}
+											key={value[0]}
+											currency={value[0]}
+											amount={last(value[1])}/>;
+					})}
+				</div>
 
+			</div>
 
 			<div className="graf">
 				<PriceGraf prices={prices} currency={DEFAULT_CURRENCY}/>

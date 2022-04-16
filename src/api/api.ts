@@ -83,6 +83,13 @@ class Api {
         });
     }
 
+	async getPrice(ticker: string) {
+		return await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=USD`)
+			.then(res => res.json())
+			.then(res => res.USD);
+	}
+
+	//TODO change
     async checkExist(ticker: string) {
         return await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${ticker}&tsyms=USD`)
             .then(res => res.json())

@@ -1,23 +1,25 @@
 import React, {useEffect} from 'react';
 import noop from '../../utils/noop';
+import './currency.css';
 
 const Currency: React.FC<{
   currency: string;
   amount?: number;
   className?: string;
+  isSelected?: boolean;
   onClose?: (value: string) => void;
   onClick?: (value: string) => void;
-}> = ({ currency, amount, className = '', onClose= noop, onClick = noop }) => {
+}> = ({ currency, amount, className = '', onClose= noop, onClick = noop, isSelected }) => {
   const [classUpdate, setClassUpdate] = React.useState('');
 
-  useEffect(() => {
-    setTimeout(() => {
-      setClassUpdate('');
-    }, 1000);
-    setClassUpdate(' scale-105');
-  }, [amount]);
-  const classNames = className + classUpdate;
-
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     setClassUpdate('');
+  //   }, 1000);
+  //   setClassUpdate(' scale-105');
+  // }, [amount]);
+  const isSelectedClass = isSelected ? ' selected' : '';
+  const classNames = className + classUpdate + isSelectedClass;
 
   const handleClose = (event:  React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
     event.stopPropagation();
@@ -30,7 +32,7 @@ const Currency: React.FC<{
   };
 
   return (
-    <div onClick={handleClick} className={classNames + ' relative transition-all p-6 bg-white rounded-xl shadow-lg flex items-center space-x-4'}>
+    <div onClick={handleClick} className={classNames + ' relative item transition-all p-6  rounded-xl shadow-lg flex items-center space-x-4 mb-4'}>
       {currency}: {amount}
 
       <span onClick={handleClose}  className="cursor-pointer absolute top-2 right-2.5">x</span>
