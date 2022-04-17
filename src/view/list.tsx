@@ -11,23 +11,40 @@ import currency from '../components/currency/currency';
 import {takeRight, last} from '../utils/collections';
 import noop from '../utils/noop';
 
+import Select from '../components/select/select';
+
 const api = Api.getInstance();
 
 const SAVE_KEY = 'currency';
+const SAVE_KEY_SORT = 'sort_direction';
+const SAVE_KEY_SELECTED_CURRENCY = 'currency_selected';
 const DEFAULT_CURRENCY = 'DOGE';
 
 function getSavedCurrency() {
 	return UserPreference.get<Array<string>>(SAVE_KEY, []);
 }
+function getSavedSortDirection() {
+	return UserPreference.get<Sort>(SAVE_KEY_SORT, Sort.DEFAULT);
+}
 
+function getSavedSelectedCurrency() {
+	return UserPreference.get<string>(SAVE_KEY_SELECTED_CURRENCY, '');
+}
+
+enum Sort {
+	ASC = 'asc',
+	DESC = 'desc',
+	DEFAULT = 'default',
+}
 
 const List: React.FC = () => {
 	const [search, setSearch] = useState<string>(() => Object.keys(getSavedCurrency()).length ? '' : DEFAULT_CURRENCY);
 	const [list, setList] = useState<Array<string>>(getSavedCurrency);
 	const [currency, setCurrency] = useState<Record<string, Array<number>>>({});
 	const [isConnecting, setConnectStatus] = useState<boolean>(false);
-	const [selectedCurrency, setSelected] = useState('');
+	const [selectedCurrency, setSelected] = useState(getSavedSelectedCurrency);
 	const [prices, setPrices] = useState<Array<number>>([]);
+	const [sortBy, setSortBy] = useState<Sort>(getSavedSortDirection);
 
 	const updateCurrency = useCallback((data: Record<string, unknown>) => {
 		setCurrency((prev) => {
@@ -42,6 +59,12 @@ const List: React.FC = () => {
 
 
 	useEffect(() => {
+		UserPreference.save(SAVE_KEY_SORT, sortBy);
+		UserPreference.save(SAVE_KEY_SELECTED_CURRENCY, selectedCurrency);
+		UserPreference.save(SAVE_KEY, list);
+	}, [sortBy, selectedCurrency, list]);
+
+	useEffect(() => {
 		const currencyPrices = currency[selectedCurrency] || [];
 		setPrices(currencyPrices);
 	}, [selectedCurrency, currency]);
@@ -51,10 +74,6 @@ const List: React.FC = () => {
 			setConnectStatus(true);
 		});
 	}, []);
-
-	useEffect(() => {
-		UserPreference.save(SAVE_KEY, list);
-	}, [list]);
 
 	useEffect(() => {
 		list.forEach((currency) => {
@@ -124,6 +143,28 @@ const List: React.FC = () => {
 		});
 	};
 
+
+	const sortOptions = Object.values(Sort).map((value) => ({
+		value,
+		label: value,
+	}));
+
+	const onSortChange = (value: any) => {
+		setSortBy(value);
+	};
+
+	let currencyItems = Object.entries(currency);
+	if (sortBy !== Sort.DEFAULT) {
+		currencyItems = currencyItems.sort((a, b) => {
+			const [, valueA] = a;
+			const [, valueB] = b;
+			if (sortBy === Sort.ASC) {
+				return valueA[0] - valueB[0];
+			}
+			return valueB[0] - valueA[0];
+		});
+	}
+
 	return (
 		<div className="list main">
 			<Loader isLoading={!isConnecting}/>
@@ -132,8 +173,11 @@ const List: React.FC = () => {
 					<Input className={'ListInput'} value={search} onChange={setSearch}/>
 					<Button onClick={addItem}>+</Button>
 				</form>
+				<div>
+					<Select onChange={onSortChange} value={sortBy} options={sortOptions}/>
+				</div>
 				<div className="list-wrapper">
-					{Object.entries(currency).map((value) => {
+					{currencyItems.map((value) => {
 						return <Currency onClose={removeItem}
 											isSelected={selectedCurrency === value[0]}
 											onClick={selectCurrency}
@@ -142,6 +186,7 @@ const List: React.FC = () => {
 											amount={last(value[1])}/>;
 					})}
 				</div>
+
 
 			</div>
 

@@ -6,7 +6,7 @@
   background-color: #dcdcdc;
 }
 
-.selected:after {
+.item.selected:after {
   position: absolute;
   width: 10px;
   height: 10px;

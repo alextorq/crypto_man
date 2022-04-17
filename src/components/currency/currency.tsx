@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import noop from '../../utils/noop';
 import './currency.css';
 
@@ -10,16 +10,9 @@ const Currency: React.FC<{
   onClose?: (value: string) => void;
   onClick?: (value: string) => void;
 }> = ({ currency, amount, className = '', onClose= noop, onClick = noop, isSelected }) => {
-  const [classUpdate, setClassUpdate] = React.useState('');
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     setClassUpdate('');
-  //   }, 1000);
-  //   setClassUpdate(' scale-105');
-  // }, [amount]);
   const isSelectedClass = isSelected ? ' selected' : '';
-  const classNames = className + classUpdate + isSelectedClass;
+  const classNames = className  + isSelectedClass;
 
   const handleClose = (event:  React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
     event.stopPropagation();
