@@ -51,17 +51,13 @@ function getInitialCurrencyPrice(list: Array<string>, updateCurrency: (data: any
 	}, []);
 }
 
-function sortByPrice(currencyItems:  Array<[string, number[]]>, sortDirection: Sort) {
+function sortByPrice(currencyItems:  Array<{currency: string; price: number}>, sortDirection: Sort) {
 	const items = [...currencyItems];
 	return items.sort((a, b) => {
-		const [, valueA] = a;
-		const [, valueB] = b;
-		const lastValueA = last(valueA) || 0;
-		const lastValueB = last(valueB) || 0;
 		if (sortDirection === Sort.ASC) {
-			return lastValueA - lastValueB;
+			return a.price - b.price;
 		}
-		return lastValueB - lastValueA;
+		return b.price - a.price;
 	});
 }
 
@@ -147,10 +143,6 @@ const List: React.FC = () => {
 		setSearch('');
 	};
 
-	const selectCurrency = (currency: string) => {
-		setSelected(currency);
-	};
-
 	const removeItem = (currency: string) => {
 		setList((list) => list.filter((key) => key !== currency));
 		setCurrency((prev) => {
@@ -163,7 +155,7 @@ const List: React.FC = () => {
 		}
 	};
 
-	let currencyItems = Object.entries(currency);
+	let currencyItems = Object.entries(currency).map(item => ({	currency: item[0], price: last(item[1]) || 0}));
 	if (sortBy !== Sort.DEFAULT) {
 		currencyItems = sortByPrice(currencyItems, sortBy);
 	}
@@ -182,18 +174,21 @@ const List: React.FC = () => {
 					<Select onChange={setSortBy} value={sortBy} options={sortOptions}/>
 				</div>
 
-				{isEmptyCurrencyList ? (<div className="white">
-					<h2>No currencies</h2>
-					<p>Add currencies to the list</p>
-				</div>) : (
+				{isEmptyCurrencyList ? (
+					<div className="white">
+						<h2>No currencies</h2>
+						<p>Add currencies to the list</p>
+					</div>
+				) : (
 					<div className="list-wrapper">
 						{currencyItems.map((value) => {
-							return <Currency onClose={removeItem}
-									isSelected={selectedCurrency === value[0]}
-									onClick={selectCurrency}
-									key={value[0]}
-									currency={value[0]}
-									amount={last(value[1])}/>;
+							return <Currency
+										onClose={removeItem}
+										isSelected={selectedCurrency === value.currency}
+										onClick={setSelected}
+										key={value.currency}
+										currency={value.currency}
+										amount={value.price}/>;
 						})}
 					</div>
 				)}
