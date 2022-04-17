@@ -4,19 +4,55 @@
 
 .item {
   background-color: #dcdcdc;
+  transition: transform 0.2s;
+  cursor: pointer;
 }
 
-.item.selected:after {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  content: '';
-  background: green;
-  border-radius: 50%;
-  top: 5px;
-  left: 5px;
-  animation: blink-animation 2s steps(5, start) infinite;
+.item:not(.selected):hover {
+  transform: scale(1.035);
 }
+
+.item.selected {
+  /*transform: translateX(10px);*/
+}
+
+
+.close {
+  position: absolute;
+  right: 10px;
+  top: 0;
+  color: #000;
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+.close:hover,.close:focus {
+  color: #a17676;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.currency-item--decrease {
+  background-color: #ff9393;
+}
+
+.currency-item--up {
+  background-color: #beffb0;
+}
+
+.close:focus {
+  outline: none;
+}
+.close:after {
+  content: '\00d7';
+  line-height: 1;
+  font-size: 20px;
+}
+
 
 @keyframes blink-animation {
   to {

@@ -167,7 +167,7 @@ const List: React.FC = () => {
 	return (
 		<div className="list main">
 			<Loader isLoading={!isConnecting}/>
-			<div>
+			<div className="left-side">
 				<form onSubmit={addItem} className={'Search'}>
 					<Input className={'ListInput'} value={search} onChange={setSearch}/>
 					<Button onClick={addItem}>+</Button>
@@ -175,6 +175,7 @@ const List: React.FC = () => {
 				<div>
 					<Select onChange={setSortBy} value={sortBy} options={sortOptions}/>
 				</div>
+
 				<div className="list-wrapper">
 					{currencyItems.map((value) => {
 						return <Currency onClose={removeItem}
