@@ -13,6 +13,8 @@ import noop from '../utils/noop';
 
 import Select from '../components/select/select';
 
+import {Sort, sortOptions} from '../utils/sort';
+
 const api = Api.getInstance();
 
 const SAVE_KEY = 'currency';
@@ -31,11 +33,37 @@ function getSavedSelectedCurrency() {
 	return UserPreference.get<string>(SAVE_KEY_SELECTED_CURRENCY, '');
 }
 
-enum Sort {
-	ASC = 'asc',
-	DESC = 'desc',
-	DEFAULT = 'default',
+function savePreference(sortBy: Sort, list: Array<string>, selectedCurrency: string) {
+	useEffect(() => {
+		UserPreference.save(SAVE_KEY_SORT, sortBy);
+		UserPreference.save(SAVE_KEY_SELECTED_CURRENCY, selectedCurrency);
+		UserPreference.save(SAVE_KEY, list);
+	}, [sortBy, list, selectedCurrency]);
 }
+
+function getInitialCurrencyPrice(list: Array<string>, updateCurrency: (data: any) => void) {
+	useEffect(() => {
+		list.forEach((currency) => {
+			api.getPrice(currency).then((data) => {
+				updateCurrency({currency, newPrice: data});
+			});
+		});
+	}, []);
+}
+
+function sortByPrice(currencyItems:  [string, number[]][], sortDirection: Sort) {
+	const items = [...currencyItems];
+	return items.sort((a, b) => {
+		const [, valueA] = a;
+		const [, valueB] = b;
+		if (sortDirection === Sort.ASC) {
+			return valueA[0] - valueB[0];
+		}
+		return valueB[0] - valueA[0];
+	});
+}
+
+
 
 const List: React.FC = () => {
 	const [search, setSearch] = useState<string>(() => Object.keys(getSavedCurrency()).length ? '' : DEFAULT_CURRENCY);
@@ -57,12 +85,8 @@ const List: React.FC = () => {
 		});
 	}, []);
 
-
-	useEffect(() => {
-		UserPreference.save(SAVE_KEY_SORT, sortBy);
-		UserPreference.save(SAVE_KEY_SELECTED_CURRENCY, selectedCurrency);
-		UserPreference.save(SAVE_KEY, list);
-	}, [sortBy, selectedCurrency, list]);
+	getInitialCurrencyPrice(list, updateCurrency);
+	savePreference(sortBy, list, selectedCurrency);
 
 	useEffect(() => {
 		const currencyPrices = currency[selectedCurrency] || [];
@@ -72,14 +96,6 @@ const List: React.FC = () => {
 	useEffect(() => {
 		api.getPromise().then(() => {
 			setConnectStatus(true);
-		});
-	}, []);
-
-	useEffect(() => {
-		list.forEach((currency) => {
-			api.getPrice(currency).then((data) => {
-				updateCurrency({currency, newPrice: data});
-			});
 		});
 	}, []);
 
@@ -143,26 +159,9 @@ const List: React.FC = () => {
 		});
 	};
 
-
-	const sortOptions = Object.values(Sort).map((value) => ({
-		value,
-		label: value,
-	}));
-
-	const onSortChange = (value: any) => {
-		setSortBy(value);
-	};
-
 	let currencyItems = Object.entries(currency);
 	if (sortBy !== Sort.DEFAULT) {
-		currencyItems = currencyItems.sort((a, b) => {
-			const [, valueA] = a;
-			const [, valueB] = b;
-			if (sortBy === Sort.ASC) {
-				return valueA[0] - valueB[0];
-			}
-			return valueB[0] - valueA[0];
-		});
+		currencyItems = sortByPrice(currencyItems, sortBy);
 	}
 
 	return (
@@ -174,7 +173,7 @@ const List: React.FC = () => {
 					<Button onClick={addItem}>+</Button>
 				</form>
 				<div>
-					<Select onChange={onSortChange} value={sortBy} options={sortOptions}/>
+					<Select onChange={setSortBy} value={sortBy} options={sortOptions}/>
 				</div>
 				<div className="list-wrapper">
 					{currencyItems.map((value) => {

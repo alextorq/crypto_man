@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import './select.css';
 
 type numberString = string | number;
@@ -8,22 +8,39 @@ export type options<T> = {
 	label: T;
 };
 
-interface Props<T = numberString> {
+interface Props<T> {
   options: options<T>[];
   onChange: (value: T) => void;
-  value: string;
+  value: T;
 }
 
-const select: React.FC<Props> = (props) => {
+const select = <T extends numberString>(props: React.PropsWithChildren<Props<T>>): React.ReactElement => {
   const { options = [], onChange, value = '' } = props;
+
   const [isOpen, setIsOpen] = React.useState(false);
   const toggleSelect = (e:  React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
 	e.stopPropagation();
 	e.preventDefault();
 	setIsOpen(!isOpen);
   };
+
+	useEffect(() => {
+		const callback = () => setIsOpen(false);
+		function subscribeClick() {
+			document.addEventListener('click', callback, {passive: true});
+		}
+		function unsubscribeClick() {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-expect-error
+			document.removeEventListener('click', callback, {passive: true});
+		}
+
+		subscribeClick();
+		return unsubscribeClick;
+	}, []);
+
   const className = isOpen ? 'select open' : 'select';
-  const selectOptionClass = (option: options<numberString>) => option.value === value ? 'select_option selected' : 'select_option';
+  const selectOptionClass = (option: options<T>) => option.value === value ? 'select_option selected' : 'select_option';
   return (
 		<div onClick={toggleSelect} className={className} >
 			<div className="select_value">{value}</div>
