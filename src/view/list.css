@@ -33,3 +33,14 @@
     flex-grow: 1;
     overflow: auto;
 }
+
+.graf h2 {
+    margin-bottom: 20px;
+    color: white;
+    font-size: 30px;
+    line-height: 1;
+}
+
+.white {
+    color: white;
+}

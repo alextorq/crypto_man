@@ -20,7 +20,7 @@ const api = Api.getInstance();
 const SAVE_KEY = 'currency';
 const SAVE_KEY_SORT = 'sort_direction';
 const SAVE_KEY_SELECTED_CURRENCY = 'currency_selected';
-const DEFAULT_CURRENCY = 'DOGE';
+const DEFAULT_CURRENCY = 'BTC';
 
 function getSavedCurrency() {
 	return UserPreference.get<Array<string>>(SAVE_KEY, []);
@@ -51,18 +51,19 @@ function getInitialCurrencyPrice(list: Array<string>, updateCurrency: (data: any
 	}, []);
 }
 
-function sortByPrice(currencyItems:  [string, number[]][], sortDirection: Sort) {
+function sortByPrice(currencyItems:  Array<[string, number[]]>, sortDirection: Sort) {
 	const items = [...currencyItems];
 	return items.sort((a, b) => {
 		const [, valueA] = a;
 		const [, valueB] = b;
+		const lastValueA = last(valueA) || 0;
+		const lastValueB = last(valueB) || 0;
 		if (sortDirection === Sort.ASC) {
-			return valueA[0] - valueB[0];
+			return lastValueA - lastValueB;
 		}
-		return valueB[0] - valueA[0];
+		return lastValueB - lastValueA;
 	});
 }
-
 
 
 const List: React.FC = () => {
@@ -157,12 +158,17 @@ const List: React.FC = () => {
 			delete newCurrency[currency];
 			return newCurrency;
 		});
+		if (selectedCurrency === currency) {
+			setSelected('');
+		}
 	};
 
 	let currencyItems = Object.entries(currency);
 	if (sortBy !== Sort.DEFAULT) {
 		currencyItems = sortByPrice(currencyItems, sortBy);
 	}
+
+	const isEmptyCurrencyList = currencyItems.length === 0;
 
 	return (
 		<div className="list main">
@@ -176,21 +182,25 @@ const List: React.FC = () => {
 					<Select onChange={setSortBy} value={sortBy} options={sortOptions}/>
 				</div>
 
-				<div className="list-wrapper">
-					{currencyItems.map((value) => {
-						return <Currency onClose={removeItem}
-											isSelected={selectedCurrency === value[0]}
-											onClick={selectCurrency}
-											key={value[0]}
-											currency={value[0]}
-											amount={last(value[1])}/>;
-					})}
-				</div>
-
-
+				{isEmptyCurrencyList ? (<div className="white">
+					<h2>No currencies</h2>
+					<p>Add currencies to the list</p>
+				</div>) : (
+					<div className="list-wrapper">
+						{currencyItems.map((value) => {
+							return <Currency onClose={removeItem}
+									isSelected={selectedCurrency === value[0]}
+									onClick={selectCurrency}
+									key={value[0]}
+									currency={value[0]}
+									amount={last(value[1])}/>;
+						})}
+					</div>
+				)}
 			</div>
 
 			<div className="graf">
+				<h2 className="">Currency: {selectedCurrency}</h2>
 				<PriceGraf prices={prices} currency={DEFAULT_CURRENCY}/>
 			</div>
 		</div>
