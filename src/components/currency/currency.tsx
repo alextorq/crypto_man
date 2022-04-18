@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import noop from '../../utils/noop';
 import './currency.css';
 
-import {usePrevProps} from '../../utils/hooks';
+import {usePreviously} from '../../utils/hooks';
 
 const ANIMATION_CHANGE_DURATION = 700;
 
@@ -27,13 +27,13 @@ const Currency: React.FC<{
   onClick?: (value: string) => void;
 }> = ({ currency, amount, className = '', onClose= noop, onClick = noop, isSelected }) => {
 	const [changeClass, setChangeClass] = useState(() => calculateClass(undefined, amount));
-	const prevProps = usePrevProps(amount);
+	const prevProps = usePreviously(amount);
 	const timer = useRef<number|undefined>();
 
 	useEffect(() => {
-		window.clearTimeout(timer.current);
 		setChangeClass(calculateClass(prevProps, amount));
 		timer.current = window.setTimeout(setChangeClass, ANIMATION_CHANGE_DURATION, 'currency-item--no-change');
+		return () => window.clearTimeout(timer.current);
 	}, [amount]);
 
 	const isSelectedClass = isSelected ? 'selected' : '';

@@ -1,4 +1,4 @@
-import React, {FormEvent, useCallback, useEffect, useState} from 'react';
+import React, {FormEvent, useCallback, useEffect, useRef, useState} from 'react';
 import Input from '../components/input/input';
 import Button from '../components/button/button';
 import Loader from '../components/loader/loader';
@@ -8,12 +8,13 @@ import Currency from '../components/currency/currency';
 import UserPreference from '../utils/userPreference';
 import PriceGraf from '../components/price-graf/price-graf';
 import currency from '../components/currency/currency';
-import {takeRight, last} from '../utils/collections';
+import {takeRight, last, isEmpty, getDifference} from '../utils/collections';
 import noop from '../utils/noop';
 
 import Select from '../components/select/select';
 
 import {Sort, sortOptions} from '../utils/sort';
+import {usePreviously} from '../utils/hooks';
 
 const api = Api.getInstance();
 
@@ -61,15 +62,58 @@ function sortByPrice(currencyItems:  Array<{currency: string; price: number}>, s
 	});
 }
 
+function getCurrencyItemsInfo(list: Array<string>, prevList: Array<string>|undefined, isConnecting: boolean, listRef:  React.MutableRefObject<string[]>, updateCurrency: (data: any) => void) {
+	useEffect(() => {
+		if (!isConnecting) return noop;
+		function changeSubscriptions() {
+			const {added, removed} = getDifference(list, prevList);
+
+			removed.forEach(key => {
+				api.unsubscribeFromTickerOnWs(key, updateCurrency as any);
+			});
+
+			added.forEach(key => {
+				api.subscribeToTickerOnWs(key, updateCurrency as any);
+			});
+		}
+
+		changeSubscriptions();
+	}, [isConnecting, list, prevList]);
+
+	useEffect(() => {
+		if (!isConnecting) return noop;
+
+		function subscribe() {
+			list.forEach(key => {
+				api.subscribeToTickerOnWs(key, updateCurrency as any);
+			});
+		}
+		subscribe();
+
+		function unsubscribe() {
+			listRef.current.forEach(key => {
+				api.unsubscribeFromTickerOnWs(key, updateCurrency as any);
+			});
+		}
+		return unsubscribe;
+	}, [isConnecting]);
+}
+
 
 const List: React.FC = () => {
 	const [search, setSearch] = useState<string>(() => Object.keys(getSavedCurrency()).length ? '' : DEFAULT_CURRENCY);
 	const [list, setList] = useState<Array<string>>(getSavedCurrency);
+	const prevList = usePreviously(list);
 	const [currency, setCurrency] = useState<Record<string, Array<number>>>({});
 	const [isConnecting, setConnectStatus] = useState<boolean>(false);
 	const [selectedCurrency, setSelected] = useState(getSavedSelectedCurrency);
 	const [prices, setPrices] = useState<Array<number>>([]);
 	const [sortBy, setSortBy] = useState<Sort>(getSavedSortDirection);
+	const listRef = useRef(list);
+	useEffect(() => {
+		listRef.current = list;
+	}, [list]);
+
 
 	const updateCurrency = useCallback((data: Record<string, unknown>) => {
 		setCurrency((prev) => {
@@ -96,25 +140,7 @@ const List: React.FC = () => {
 		});
 	}, []);
 
-	useEffect(() => {
-		if (!isConnecting) return noop;
-		function subscribe() {
-			list.forEach(key => {
-				api.subscribeToTickerOnWs(key, updateCurrency as any);
-			});
-		}
-
-		function unsubscribe() {
-			list.forEach(key => {
-				api.unsubscribeFromTickerOnWs(key, updateCurrency as any);
-			});
-		}
-
-		subscribe();
-
-		return unsubscribe;
-	}, [isConnecting, list]);
-
+	getCurrencyItemsInfo(list, prevList, isConnecting, listRef, updateCurrency);
 
 	const addItem = async (e?: FormEvent<HTMLFormElement>) => {
 		e && e.preventDefault();
@@ -160,7 +186,7 @@ const List: React.FC = () => {
 		currencyItems = sortByPrice(currencyItems, sortBy);
 	}
 
-	const isEmptyCurrencyList = currencyItems.length === 0;
+	const isEmptyCurrencyList = isEmpty(currencyItems);
 
 	return (
 		<div className="list main">
