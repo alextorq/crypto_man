@@ -16,6 +16,10 @@ export function first<T = unknown>(array: Array<T>) {
 	return array[0];
 }
 
+export function getFromEnd<T = unknown>(array: Array<T>, index: number) {
+	return array[(array.length - index) - 1];
+}
+
 export function getDifference<T>(array: Array<T>, other?: Array<T>) {
 	const a = array || [];
 	const b = other || [];

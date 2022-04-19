@@ -121,7 +121,7 @@ const List: React.FC = () => {
 			const newCurrency = prev[key] || [];
 			return {
 				...prev,
-				[key]: takeRight([...newCurrency, data.newPrice as number],100)
+				[key]: takeRight([...newCurrency, data.newPrice as number],300)
 			};
 		});
 	}, []);
@@ -192,12 +192,14 @@ const List: React.FC = () => {
 		<div className="list main">
 			<Loader isLoading={!isConnecting}/>
 			<div className="left-side">
-				<form onSubmit={addItem} className={'Search'}>
-					<Input className={'ListInput'} value={search} onChange={setSearch}/>
-					<Button onClick={addItem}>+</Button>
-				</form>
-				<div>
-					<Select onChange={setSortBy} value={sortBy} options={sortOptions}/>
+				<div className="left-side-top">
+					<form onSubmit={addItem} className={'Search'}>
+						<Input className={'ListInput'} value={search} onChange={setSearch}/>
+						<Button onClick={addItem}>+</Button>
+					</form>
+					<div>
+						<Select onChange={setSortBy} value={sortBy} options={sortOptions}/>
+					</div>
 				</div>
 
 				{isEmptyCurrencyList ? (

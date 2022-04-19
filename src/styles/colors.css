@@ -1,4 +1,8 @@
+/*TODO change*/
 :root {
-   --backgroud-color: #0a1a26;
-    --backgroud-acept: #102D4F;
+    --backgroud-color: rgb(31, 33, 40);
+    --backgroud-acept: rgb(25, 27, 31);
+    --backgroud-interactive-elements-ui: rgb(0, 0, 0);
+    --backgroud-currency-up: rgb(39, 174, 96);;
+    --backgroud-currency-down: rgb(253, 64, 64);
 }

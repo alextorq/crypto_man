@@ -3,9 +3,10 @@
 }
 
 .item {
-  background-color: #dcdcdc;
+  background-color: var(--backgroud-acept);
   transition: transform 0.2s;
   cursor: pointer;
+  color: white;
 }
 
 .item:not(.selected):hover {
@@ -37,11 +38,11 @@
 }
 
 .currency-item--decrease {
-  background-color: #ff9393;
+  background-color: var(--backgroud-currency-down);
 }
 
 .currency-item--up {
-  background-color: #beffb0;
+  background-color: var(--backgroud-currency-up);
 }
 
 .close:focus {

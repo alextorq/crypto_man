@@ -1,15 +1,35 @@
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './price-graf.css';
-import {takeRight} from '../../utils/collections';
+import {getFromEnd, last, takeRight} from '../../utils/collections';
 
 interface Props {
 	prices: Array<number>
 	currency: string;
 }
 
-const MAX_ITEM = 100;
+const MAX_ITEM = 150;
+const WIDTH_CURRENCY = 10;
+
+
+function observeWith(setWidth: (width: number) => void, grafElement:  React.RefObject<HTMLUListElement>) {
+	useEffect(() => {
+		const handler = () => {
+			setWidth(grafElement.current!.clientWidth);
+		};
+		handler();
+		window.addEventListener('resize', handler);
+		return () => window.removeEventListener('resize', handler);
+	}, []);
+}
+
+let timer: number|null = null;
 
 const PriceGraf: React.FC<Props> = ({prices= []}) => {
+	const mousePosition = useRef<number>(0);
+	const grafElement = useRef<HTMLUListElement>(null);
+	const [width, setWidth] = useState<number>(1000);
+	const [item, setItem] = useState<number>(0);
+	const [hoverItem, setHoverItem] = useState<number>(0);
 	const maxPrice = Math.max(...prices);
 	const minPrice = Math.min(...prices);
 	const maxPriceDiff = maxPrice - minPrice;
@@ -21,26 +41,55 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 	const limitedPrice = takeRight(prices, MAX_ITEM);
 	const pricesSizes =	limitedPrice.map(getSize);
 
-	return (
-		<div className="price-grafic">
-			{isFinite(maxPrice) && (
-				<div>
-					<div className="price-grafic__max">
-						{ maxPrice.toFixed(4)}
-					</div>
-					<div className="price-grafic__line"></div>
-				</div>
-			)}
+	const hoverPrice = last(limitedPrice);
 
-			<ul>
-				{pricesSizes.map((item, index) => (
-					<li className="relative" key={item + index} style={{height: `${item}%`}}>
-						<span className="hover-tooltip bg-white opacity-0 z-10 absolute top-0 left-1/2 transition-all">
-							{limitedPrice[index]}
-						</span>
-					</li>
-				))}
-			</ul>
+	const mouseSpy = (e: React.MouseEvent<HTMLUListElement, MouseEvent>) => {
+		mousePosition.current = e.nativeEvent.offsetX;
+	};
+
+	const mouseLeave = () => {
+		mousePosition.current = 0;
+	};
+
+	useEffect(() => {
+		setHoverItem(getFromEnd(limitedPrice, item));
+	}, [item, limitedPrice]);
+
+	observeWith(setWidth, grafElement);
+
+	useEffect(() => {
+		function calculateItem() {
+			timer = window.requestAnimationFrame(calculateItem);
+			const i = Math.floor((width - mousePosition.current) / WIDTH_CURRENCY);
+			setItem(i);
+		}
+		calculateItem();
+		return () => window.cancelAnimationFrame(timer!);
+	}, [width]);
+
+
+	function classHover(index: number) {
+		let className = 'relative';
+		if ((limitedPrice.length - index) === item + 1 ) {
+			className += ' hover';
+		}
+		return className;
+	}
+
+	return (
+		<div>
+		<div className="price-grafic">
+			<div className="white">
+				{hoverItem || hoverPrice}: USD
+			</div>
+				<ul ref={grafElement} onMouseLeave={mouseLeave} onMouseMove={mouseSpy}>
+					{pricesSizes.map((item, index) => (
+						<li className={classHover(index)} key={item + index} style={{width: WIDTH_CURRENCY + 'px'}}>
+							<span className="" style={{height: `${item}%`}}></span>
+						</li>
+					))}
+				</ul>
+		</div>
 		</div>
 	);
 };
