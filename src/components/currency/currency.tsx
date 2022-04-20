@@ -49,9 +49,14 @@ const Currency: React.FC<{
 		onClick(currency);
 	};
 
+	const imagePath = '/images/icons/cryptocurrency/' + currency.toLowerCase() + '.png';
+
 	return (
 		<div onClick={handleClick} className={classNames + ' relative item transition-all p-6  rounded-xl shadow-lg flex items-center space-x-4 mb-4'}>
-			{currency}: {amount}
+			<img src={imagePath} alt={currency}/>
+			<span>
+				{currency}: {amount}
+			</span>
 			<button onClick={handleClose}  className="cursor-pointer close absolute top-2 right-2.5"></button>
 		</div>
   );

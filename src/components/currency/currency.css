@@ -9,6 +9,11 @@
   color: white;
 }
 
+.item img{
+  width: 20px;
+  margin-left: 5px;
+}
+
 .item:not(.selected):hover {
   transform: scale(1.035);
 }

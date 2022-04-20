@@ -22,6 +22,17 @@ function observeWith(setWidth: (width: number) => void, grafElement:  React.RefO
 	}, []);
 }
 
+function preparePrices(limitedPrice: Array<number>) {
+	const maxPrice = Math.max(...limitedPrice);
+	const minPrice = Math.min(...limitedPrice);
+	const maxPriceDiff = maxPrice - minPrice;
+	function getSize(x: number) {
+		return ((x - minPrice) * 100 / maxPriceDiff).toFixed(2);
+	}
+
+	return limitedPrice.map(getSize);
+}
+
 let timer: number|null = null;
 
 const PriceGraf: React.FC<Props> = ({prices= []}) => {
@@ -30,18 +41,10 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 	const [width, setWidth] = useState<number>(1000);
 	const [item, setItem] = useState<number>(0);
 	const [hoverItem, setHoverItem] = useState<number>(0);
-	const maxPrice = Math.max(...prices);
-	const minPrice = Math.min(...prices);
-	const maxPriceDiff = maxPrice - minPrice;
-
-	function getSize(x: number) {
-		return ((x - minPrice) * 100 / maxPriceDiff).toFixed(2);
-	}
 
 	const limitedPrice = takeRight(prices, MAX_ITEM);
-	const pricesSizes =	limitedPrice.map(getSize);
-
-	const hoverPrice = last(limitedPrice);
+	const pricesSizes =	preparePrices(limitedPrice);
+	const lastPrice = last(limitedPrice);
 
 	const mouseSpy = (e: React.MouseEvent<HTMLUListElement, MouseEvent>) => {
 		mousePosition.current = e.nativeEvent.offsetX;
@@ -80,7 +83,7 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 		<div>
 		<div className="price-grafic">
 			<div className="white">
-				{hoverItem || hoverPrice}: USD
+				{hoverItem || lastPrice}: USD
 			</div>
 				<ul ref={grafElement} onMouseLeave={mouseLeave} onMouseMove={mouseSpy}>
 					{pricesSizes.map((item, index) => (
