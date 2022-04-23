@@ -7,7 +7,7 @@ function App() {
     <div className="App">
       <header className="App-header">
           <div className="container">
-              <h1 className={'text-3xl font-bold underline'}>Crypto Nomicon</h1>
+              <h1 className={'text-3xl font-bold mt-2'}>Crypto Nomicon</h1>
           </div>
       </header>
       <main>

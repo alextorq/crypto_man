@@ -7,9 +7,6 @@ interface Props {
 	currency: string;
 }
 
-const MAX_ITEM = 150;
-const WIDTH_CURRENCY = 10;
-
 
 function observeWith(setWidth: (width: number) => void, grafElement:  React.RefObject<HTMLUListElement>) {
 	useEffect(() => {
@@ -27,7 +24,7 @@ function preparePrices(limitedPrice: Array<number>) {
 	const minPrice = Math.min(...limitedPrice);
 	const maxPriceDiff = maxPrice - minPrice;
 	function getSize(x: number) {
-		return ((x - minPrice) * 100 / maxPriceDiff).toFixed(2);
+		return Math.max(((x - minPrice) * 100 / maxPriceDiff), 1).toFixed(2);
 	}
 
 	return limitedPrice.map(getSize);
@@ -41,13 +38,23 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 	const [width, setWidth] = useState<number>(1000);
 	const [item, setItem] = useState<number>(0);
 	const [hoverItem, setHoverItem] = useState<number>(0);
+	const [widthCurrency, setWidthCurrency] = useState<number>(10);
+	const [maxCurrencyItemsList, setMaxCurrencyItemsList] = useState<number>(100);
 
-	const limitedPrice = takeRight(prices, MAX_ITEM);
+	const limitedPrice = takeRight(prices, maxCurrencyItemsList);
 	const pricesSizes =	preparePrices(limitedPrice);
 	const lastPrice = last(limitedPrice);
 
 	const mouseSpy = (e: React.MouseEvent<HTMLUListElement, MouseEvent>) => {
 		mousePosition.current = e.nativeEvent.offsetX;
+	};
+
+	const zoom = (e: React.WheelEvent<HTMLDivElement>) => {
+		const delta = e.deltaY;
+		const direction = Math.abs(delta) / delta;
+		if(isNaN(direction)) return;
+		setWidthCurrency(Math.min(Math.max(widthCurrency + direction, 8), 20));
+		setMaxCurrencyItemsList(Math.min(Math.max(maxCurrencyItemsList + direction, 100), 1000));
 	};
 
 	const mouseLeave = () => {
@@ -56,19 +63,20 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 
 	useEffect(() => {
 		setHoverItem(getFromEnd(limitedPrice, item));
-	}, [item, limitedPrice]);
+	}, [item, limitedPrice, widthCurrency]);
 
 	observeWith(setWidth, grafElement);
 
 	useEffect(() => {
 		function calculateItem() {
 			timer = window.requestAnimationFrame(calculateItem);
-			const i = Math.floor((width - mousePosition.current) / WIDTH_CURRENCY);
+			console.log(widthCurrency);
+			const i = Math.floor((width - mousePosition.current) / widthCurrency);
 			setItem(i);
 		}
 		calculateItem();
 		return () => window.cancelAnimationFrame(timer!);
-	}, [width]);
+	}, [width, widthCurrency]);
 
 
 	function classHover(index: number) {
@@ -79,20 +87,24 @@ const PriceGraf: React.FC<Props> = ({prices= []}) => {
 		return className;
 	}
 
+	const isPriceExist = limitedPrice.length > 0;
+
 	return (
 		<div>
-		<div className="price-grafic">
-			<div className="white">
-				{hoverItem || lastPrice}: USD
+			<div className="price-grafic" onWheel={zoom}>
+					{isPriceExist && (
+						<div className="white">
+							{hoverItem || lastPrice}: USD
+						</div>
+					)}
+					<ul ref={grafElement} onMouseLeave={mouseLeave} onMouseMove={mouseSpy}>
+						{pricesSizes.map((item, index) => (
+							<li className={classHover(index)} key={item + index} style={{width: widthCurrency + 'px'}}>
+								<span className="" style={{height: `${item}%`}}></span>
+							</li>
+						))}
+					</ul>
 			</div>
-				<ul ref={grafElement} onMouseLeave={mouseLeave} onMouseMove={mouseSpy}>
-					{pricesSizes.map((item, index) => (
-						<li className={classHover(index)} key={item + index} style={{width: WIDTH_CURRENCY + 'px'}}>
-							<span className="" style={{height: `${item}%`}}></span>
-						</li>
-					))}
-				</ul>
-		</div>
 		</div>
 	);
 };

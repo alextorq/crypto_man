@@ -99,6 +99,7 @@ function getCurrencyItemsInfo(list: Array<string>, prevList: Array<string>|undef
 	}, [isConnecting]);
 }
 
+const MAX_CURRENCY_LIST_SIZE = 10_000;
 
 const List: React.FC = () => {
 	const [search, setSearch] = useState<string>(() => Object.keys(getSavedCurrency()).length ? '' : DEFAULT_CURRENCY);
@@ -121,7 +122,7 @@ const List: React.FC = () => {
 			const newCurrency = prev[key] || [];
 			return {
 				...prev,
-				[key]: takeRight([...newCurrency, data.newPrice as number],300)
+				[key]: takeRight([...newCurrency, data.newPrice as number], MAX_CURRENCY_LIST_SIZE)
 			};
 		});
 	}, []);
